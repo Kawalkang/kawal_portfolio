@@ -1,0 +1,188 @@
+---
+title: "PORTFOLIO"
+author: "KAWALJEET KAUR"
+date: "2023-11-01"
+output:
+  word_document: default
+  pdf_document: default
+---
+INTRODUCTION
+This portfolio aims to investigate my transaction history that i made from Oct 1 to Oct 31, 2023.Out of 31 days, i had transactions just for 23 days and 8 days were without any transactions.These 8 days were probably those days when i did not come to university and stayed at home without any expense. This portfolio is important for me  as I am an international student and i need to manage my expenses and take care of deposits as well to avoid any breaching of my work right entitlements.To do the investigation, i made a data set of my transactions  in which every row represents the transaction on a particular day and include following columns.
+1.Date - Represented as Day 01, Day 02 etc
+2.Total - This column contains the information of my account money in the beginning of the day. 
+3.Deposit - It includes the money deposited to my account on any particular day. I get money from my part time jobs as salary which are deposited to my account on weekly basis. That, why most of rows are 0 in this column.
+4.Amount - This represents the money value that i spent on a particular item on a particular day.
+5.Purpose - It give information about the item on which i spent amount.It is divided into 3 items which are Travel, Food, and Rent. 
+6.Time - This column highlights the time of day when i used that money.I considered Morning, Afternoon and Evening. 
+7.Balance - This column includes the money that is left in my account at the end of the day.
+
+Among the columns given above, Date, Purpose and Time are categorical variables while rest are numerical.All the transactions are in Nz$. The data set includes just three purposes for the transactions that are Food, Rent and Travel. I did not use shopping and other expenses as purpose, in my data set. The reason for this is that, being a married girl, my husband is responsible for all other expenses. Also, Time column does not include the 'Night' as i do not buy food, pay rent or travel at night time.
+
+
+IMPORT DATA TO R
+```{r}
+
+Transaction_data =read.csv("C:/Users/ASUS/Desktop/C.COMPUTATIONAL STATISTICS/portfolio_dataN.csv")
+Transaction_data
+```
+
+
+Tabular form of categorical columns
+```{r}
+table(table(Transaction_data$Date))
+table(Transaction_data$Time)
+table(Transaction_data$Purpose)
+```
+
+Test 1
+Basics statistics
+```{r}
+#Histogram for Amount 
+hist(Transaction_data$Amount, col = "blue", xlab = "Amount used", main = "Histogram of Amount")
+```
+This histogram shows that most of the transactions include upto $50 only. I never made transactions between $100-200 and even $50-100 transactions were rare during the considered time.MY transactions or spendings were less than $250.
+
+
+```{r}
+#Histogram for Balance
+hist(Transaction_data$Balance, col = "pink", xlab = "Balance in the account ", main = "Histogram of Account Balance")
+```
+As per the histogram, most of the times, my account balance was  between $400-800. It was never less than 200 and more than 1000 during the considered period.Frequency for $400-500 is notably high.
+
+
+```{r}
+#Barplot for Purpose of spending
+barplot(table(Transaction_data$Purpose), main = "Purpose of spending", col='lightgreen')
+```
+From barplot, I used money for Food more frequently  than Rent and Travel. 
+
+
+```{r}
+summary(Transaction_data)
+```
+
+DISCUSSION 
+The Aim to run the summary is particularly linked with the Deposit. This column is linked with my weekly salary. Being an international student, I am entitled to work for 20 hours only which gives me nearly $350. My deposit should be less than or equal to $350, otherwise, the immigration can cancel my student visa as well. By checking my mean deposit i can easily check whether i am breaching my work conditions or not. Data has provided me evidence that i am following conditions on my work entitlement.
+ Mean deposit per day = 42.64
+ deposit for a week = 42.64*7
+                    = $298.48
+                    < $350
+In addition to it, the mean balance in my account was approximately 505 dollars. My average spending per day is nearly $34. It can be seen from the output that Total money in my bank account in the morning is nearly equal to balance remain at night on average although i was spending some money on daily basis.This due to the money deposited to my account which balanced out the spending. 
+
+DEFINITION OF P-VALUE
+Before starting any particular test on my data set, i just want to give definition of P-value.
+The P-value is defined as the probability , if null is true, of obtaining the observation or an observation more extreme."More Extreme" means larger than the observed sample.
+
+Test 2
+Student t-test
+I tried to do student t-test on "Amount" and "Deposit". But deposit data does not follow Gaussian distribution.
+```{r}
+ y=Transaction_data$Deposit
+y
+hist(y)
+```
+From histogram, it is clear that Distribution of Deposit is not Gaussian.So, i can not apply Student t-test here.
+To apply student t-test, i chose Amount column and checked the amount used using two cases.
+1.Amount used when deposit was zero.
+2.Amount used when deposit was more than zero.
+
+Null hypothesis(H0)
+The true difference in means between the "Amount" spent on days when there was  a "Deposit" (money deposited) and the "Amount" spent on days when there was no "Deposit" is equal to zero.In simple words, there is no significant difference in the spending when there was a deposit in my bank account versus there was no deposit. 
+Alternative Hypothesis(Ha)
+There is significant difference in the amount spent on days with deposit and days without a deposit.  
+
+
+```{r}
+data_a = Transaction_data$Amount[Transaction_data$Deposit>0]
+data_b = Transaction_data$Amount[Transaction_data$Deposit==0]
+Result_t.test = t.test(data_a, data_b)
+Result_t.test
+```
+Discussion
+The P-value is 0.2504 which is non-significant.It suggests that there is no strong evidence to reject the null hypothesis at the significance level of 0.05. In other words, the transaction data does not provide enough evidence to conclude that the spending on days with a deposit is significantly different from spending on days without a deposit. Also the 95% confidence interval is -73.27995 214.37012, which includes 0, further supporting the idea that there is no significant difference between  Amount[Deposit > 0] and  Amount[Deposit == 0].
+
+
+Test 3
+Null Hypothesis (H0): There is no significant association between the time of day and the Purpose. In other words, the choice of Purpose of spending money is independent of the Time of the day.
+Alternative Hypothesis (Ha): Purpose and time of the day are not independent.Or we can say that there is strong association between Time of the day and the purpose for which i am spending money.
+```{r}
+# Define a contingency table
+Transaction_data = matrix(c(3, 3, 5, 3, 0, 1, 10, 2, 2), 3, 3)
+rownames(Transaction_data) = c("Food", "Rent", "Travel")
+colnames(Transaction_data) = c("Morning","Afternoon", "Evening")
+Transaction_data
+#fisher test
+fisher_result=fisher.test(Transaction_data, alternative="greater")
+fisher_result
+
+```
+P-value is greater than 0.05 which is non-significant.So there are no strong evidence to reject the null or we are fail to reject the Null Hypothesis. In other words, Purpose for which I spend money is not associated with the time of the day. It means I cannot say that whenever i spend money in the morning , it is usually for the food or other particular purpose. Purpose of spending and Time of the day are Independent.
+
+
+Test 4
+Chi-square test and the Poisson distribution
+This test is for Number of transactions that i made on daily basis during the considered period. As per the data set, I had transactions for 23 days and 8 days were without transactions in month of October which has 31 days and data is collected for all these days. The number of transactions on a particular day were less. So, the poisson distribution  analysis is appropriate for this data set.\
+
+Null Hypothesis(H0:)
+The number of transactions follow poisson distribution.
+Alternative Hypothesis
+The number of transactions are not poisson.
+The first step is to tabulate the data. 
+
+
+The table below shows that Out of 31 days, there was just 1 transaction for 18 days, 2 transactions for 4 days and 3 transactions for 1 days and 8 days with 0 transactions.
+
+```{r}
+o = c(8, 18, 4, 1)
+Total_transactions = 8*0 + 18*1 + 4*2 + 1*3
+Total_transactions
+transactions_per_day = 29/31
+transactions_per_day
+probs = dpois(0:3, 0.95)
+probs
+# verification
+sum(probs)
+probabilities = c(probs, 1-sum(probs))
+sum(probabilities)
+sum(probabilities)*29
+
+```
+On daily basis i have 0.93 transactions. The probabilities of 0, 1, 2 and 3 transactions on any day are 0.38674102, 0.36740397, 0.17451689, and 0.05526368 respectively. The probability of 3 transactions is quite low.
+Now we need to find expected value(e)
+```{r}
+#expected value of number of transactions 
+e = probs*29
+e
+round(e)
+# observed value
+o
+#Badness of fit
+B = sum((o-e)^2/e)
+B
+# P-value
+P_value=pchisq(B, df=2, lower.tail= FALSE)
+P_value
+```
+From chi-square test, P-value is significant(0.04006084 < 0.05). It means we have strong evidence to reject the Null hypothesis which states the distribution of number of transactions as poisson. In other words, Number of transactions do not follow poisson distribution or are not consistent with poisson distribution.
+
+For next test i.e. Linear regression, i make a dataset including number of transactions.
+```{r}
+Transaction_data1 =read.csv("C:/Users/ASUS/Desktop/C.COMPUTATIONAL STATISTICS//portfolio data 2N.csv")
+Transaction_data1
+```
+
+
+Test 5
+Linear regression model
+I want to check whether my 'number of transactions' depend upon 'deposit' and 'amount' or not. Here number of transactions(dependent) are response and other variables are predictor(independent).Here i considered 'deposit' as predictor of 'number of transaction' because it is common human nature to make more purchases after getting salary or any other deposit. I just want to check this behavior is found in me as well or not. To do so, i will first plot the the graph of predictors and response but it is difficult to draw a scatter plot with more than one independent variables.  
+```{r}
+
+#Linear regression model
+model <- lm(Number_of_transactions ~ deposit + amount, data =Transaction_data1 )
+
+# Summary of model
+summary(model)
+hist(residuals(model), col='blue')
+```
+Discussion
+The model summary  make it clear that both 'deposit' and 'amount' are statistically significant. The deposit variable, with an estimated coefficient of approximately -0.0016, suggests that as deposit amounts increase, there is a negative association with the number of transactions, implying that higher deposits are associated with slightly fewer transactions which is opposite to my belief. Conversely, the positive coefficient for the amount variable (approximately 0.0051) indicates that an increase in the transaction amount is associated with a higher number of transactions. The model as a whole is statistically significant, with an F-statistic of 10.52 and a low p-value, suggesting that the combined effect of deposit and amount is a meaningful predictor of transaction numbers. The R-squared value of 0.5127 indicates that 51.27% of the variance in the number of transactions can be explained by these two variables, indicating a moderate fit of the model to the data.I need more data to get good fit of model and a proper histogram.
